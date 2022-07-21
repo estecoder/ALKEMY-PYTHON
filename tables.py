@@ -1,5 +1,7 @@
-from email.policy import default
-from sqlalchemy import Column, String, Integer, DateTime, func, text
+# from sqlalchemy import Column, String, Integer, DateTime, func, text
+from sqlalchemy import *
+from base import base
+
 
 class MainData(base):  
     __tablename__ = 'data_principal'
@@ -19,4 +21,3 @@ class MainData(base):
     web = Column(String, default=None)
     fecha_in = Column(DateTime, default=func.now())
     
-

@@ -7,7 +7,7 @@ import os
 DB_HOST = "localhost"
 DB_USER = "postgres"
 DB_PASSWORD = "toorpass"
-DB_DATABASE = "alkemy2"
+DB_DATABASE = "alkemydb"
 DB_PORT = "5432"
 link =""\
     +f"postgresql://{DB_USER}:"\
@@ -57,6 +57,7 @@ def run_sql_file():
 
 os.system(f"psql -f {file} postgres")
 
+base.metadata.create_all(db)
 
 class Prueba(base):  
     __tablename__ = 'prueba'
@@ -65,9 +66,9 @@ class Prueba(base):
     nombre = Column(String)
     apellido = Column(String)
 
-base.metadata.create_all(db)
 
-sergio = Prueba(nombre="carlos", apellido="boada")
+
+sergio = Prueba(nombre="luz", apellido="boada")
 session.add(sergio)
 session.commit()
 

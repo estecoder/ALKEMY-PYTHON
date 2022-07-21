@@ -2,15 +2,15 @@ from sqlalchemy import create_engine
 from sqlalchemy import Column, String, Integer,text
 from sqlalchemy.ext.declarative import declarative_base  
 from sqlalchemy.orm import sessionmaker
+from base import base as base_in
 
 class Postgres:
-    settings = {}
-
     def __init__(self):
+        self.base = base_in
         self.DB_HOST = "localhost"
         self.DB_USER = "alkemy"
         self.DB_PASSWORD = "toorpass"
-        self.DB_DATABASE = "alkemy2"
+        self.DB_DATABASE = "alkemydb"
         self.DB_PORT = "5432"
         self.db = None
         self.session = None
@@ -51,6 +51,9 @@ class Postgres:
     def get_session(self):
         return self.session
 
+    def  get_base_obj(self):
+        return self.base
+
     def connection(self):
         if  self.DB_HOST == None\
             or self.DB_USER == None\
@@ -63,41 +66,6 @@ class Postgres:
             +f"{self.DB_PASSWORD}@{self.DB_HOST}:"\
             +f"{self.DB_PORT}/{self.DB_DATABASE}"
         self.db = create_engine(self.link)  
-        self.base = declarative_base()
+        self.base.metadata.create_all(self.db)
         Session = sessionmaker(self.db)  
         self.session = Session()
-    
-    # def gcon(self):
-    #     print(self.str_link)
-    
-    def run_sql_file(self):
-        # Open the .sql file
-        sql_file = open('file.sql','r')
-
-        # Create an empty command string
-        sql_command = ''
-
-        # Iterate over all lines in the sql file
-        for line in sql_file:
-            # Ignore commented lines
-            if not line.startswith('--') and line.strip('\n'):
-                # Append line to the command string
-                sql_command += line.strip('\n')
-
-                # If the command string ends with ';', it is a full statement
-                if sql_command.endswith(';'):
-                    # Try to execute statement and commit it
-                    try:
-                        session.execute(text(sql_command))
-                        session.commit()
-
-                    # Assert in case of error
-                    except:
-                        print('Ops')
-
-                    # Finally, clear command string
-                    finally:
-                        sql_command = ''
-
-
-

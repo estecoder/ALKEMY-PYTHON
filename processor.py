@@ -1,6 +1,9 @@
+
 import pprint as p
+
 import pandas as pd
 from typing import List, Dict
+import time
 # from config import Postgres as psql
 
 class Processor:
@@ -8,7 +11,20 @@ class Processor:
         self._path = path_file
         self.down_data = None
         self.filtered_column = None
-        self.alt_columns = ['cp', 'cod_loc', 'idprovincia', 'iddepartamento','direccion']
+        self.alt_columns = {'cod_localidad': ['cod_loc'],
+                            'id_provincia':['idprovincia'],
+                            'id_departamento':['iddepartamento'],
+                            'categoria':[],
+                            'provincia': [],
+                            'localidad': [],
+                            'nombre':[],
+                            'domicilio': ['direccion'],
+                            'codigo_postal': ['cp'],
+                            'telefono':[],
+                            'mail':[],
+                            'web':[],
+                            'fecha_in':[],
+                            }
         
         self.tf = pd.DataFrame({
                                 'cod_localidad': pd.Series(dtype='int64'),
@@ -45,8 +61,8 @@ class Processor:
     def get_alt_columns(self):
         return self.alt_columns
     
-    def set_alt_columns(self, lista: List[str]):
-        self.alt_columns+lista
+    def set_alt_columns(self, llave: str, lista: List[str]):
+        self.alt_columns[llave] += lista
 
     def get_final_data(self):
         self._run_()
@@ -61,34 +77,62 @@ class Processor:
         cols = self.down_data.columns.to_list()
         self.down_data.columns = self._limpiar_acentos(cols)
 
-    def _fill_final_table(self):
+    def _find_right_column(self, src_key):
+        for k in self.alt_columns:
+            if src_key in self.alt_columns[k]:
+                alt_key = k
+                break
+            elif len(self.alt_columns[k])==0 and src_key==k:
+                alt_key = k
+                break
+            elif src_key==k:
+                alt_key = k
+                break
+        return alt_key 
+    def _filter_columns(self):
         cont = 0
-        process = {'in':{}, 'no_in':{}}
+        self.process = {'in':{}, 'no_in':{}}
+        vals = []
+        for h in list(self.alt_columns.values()):
+            vals += h
+        
         for i in self.down_data.columns:
-            if i in self.tf.columns or i in self.alt_columns:
-                process['in'][i]=cont
+            if i in self.tf.columns or i in vals:
+                self.process['in'][i]=cont
             else:
-                process['no_in'][i]=cont
+                self.process['no_in'][i]=cont
             cont += 1 
 
+    def _fill_final_table(self):
+        self._filter_columns()
         cont = 0
         for i in self.tf.columns:
             try:
-                self.tf[i]=self.down_data[self._find_keys(process['in'],cont)]
+                src_key = self._find_keys(self.process['in'],cont)
+                altkey = self._find_right_column(src_key)    
+                if (self.tf[i].dropna().empty and altkey==i):                     
+                    self.tf[i]=self.down_data[src_key]
+                elif (self.tf[i].dropna().empty):
+                    raise Exception(f"{i} is not filled")
             except Exception as e:
-                x_cont = cont
-                process_val = list(process['in'].values())
-                if (self.tf[i].isnull):
-                    while (True):
-                        x_cont += 1
-                        if x_cont in process_val:
-                            a = self._find_keys(process['in'],x_cont)
-                            self.tf[i]=self.down_data[a]
+                x_cont = 0
+                process_val = list(self.process['in'].values())
+                while (self.tf[i].dropna().empty):
+                    if x_cont in process_val:
+                        or_key = self._find_keys(self.process['in'],x_cont)
+                        alt_key = self._find_right_column(or_key)
+                        if i == alt_key:
+                            self.tf[i]=self.down_data[or_key]
+                        if (self.down_data[or_key].dropna().empty):
                             break
+                    x_cont += 1
             finally:
-        
                 cont +=1
-        self.filtered_column = process
+        now = time.strftime("%Y-%m-%d %H:%M")
+        now = pd.to_datetime(now)
+        self.tf['fecha_in'] = self.tf['fecha_in'].replace(pd.np.nan,now)
+        self.tf = self.tf.replace("s/d",pd.np.nan)
+        self.filtered_column = self.process
 
     def _find_keys(self, in_dict: dict, val: int):
         keys = list(in_dict.keys())

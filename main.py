@@ -1,70 +1,53 @@
 
 import pprint as p
 import os
+import pandas as pd
+
 from data import Data
 from processor import Processor
 
-
-
-from sqlalchemy import create_engine
-from sqlalchemy import Column, String, text
-from sqlalchemy.ext.declarative import declarative_base  
-from sqlalchemy.orm import sessionmaker
-
-from config import Postgres
-
-def run_sql_file():
-    # Open the .sql file
-    file = "/Users/sergioboada/PROYECTOS/ALKEMY-PYTHON/db_architecture.sql"
-    sql_file = open(file,'r')
-
-    # Create an empty command string
-    sql_command = ''
-
-    # Iterate over all lines in the sql file
-    for line in sql_file:
-        # Ignore commented lines
-        if not line.startswith('--') and line.strip('\n'):
-            # Append line to the command string
-            sql_command += line.strip('\n')
-
-            # If the command string ends with ';', it is a full statement
-            if sql_command.endswith(';'):
-                # Try to execute statement and commit it
-                try:
-                    session.execute(text(sql_command))
-                    session.commit()
-
-                # Assert in case of error
-                except:
-                    print('Ops')
-
-                # Finally, clear command string
-                finally:
-                    sql_command = ''
+from config import Postgres 
+from tables import MainData
 
 if __name__=='__main__':
     name_data1 = "Bibliotecas Populares"
     name_data2 = "Museo"
     name_data3 = "Salas de Cine"
     
-    req_api = Data()
+    req_bp = Data()
+    req_museo = Data()
+    req_cines = Data()
     save = Processor()
+    sql = Postgres()
+    sql.connection()
     
-    req_api.set_name(name_data1) 
-    # req_api.make_request()
+    req_bp.set_name(name_data1) 
+    req_bp.make_request()
+    path = req_bp.get_dir()
+    input(save.set_path_file(path))
+    bp = save.get_final_data()
 
-    
-    
-    
-    # tmp = "/Users/sergioboada/PROYECTOS/ALKEMY-PYTHON/Bibliotecas Populares/2022-July/bibliotecas-populares-15-July-2022.csv"
-    # req_api.set_dir(tmp)
-    path = req_api.get_dir()
+    req_museo.set_name(name_data2) 
+    req_museo.make_request()
+    path = req_museo.get_dir()
     save.set_path_file(path)
+    input(save.get_path_file())
+    museo = save.get_final_data()
+    
+    req_cines.set_name(name_data3) 
+    req_cines.make_request()
+    path = req_cines.get_dir()
+    input(save.set_path_file(path))
+    cines = save.get_final_data()
 
-    # print(dir(pg))
-
-    ###############################################################################################
+    input(f"{bp}\n\n{museo}\n\n{cines}")
+    
+    # tab_final = pd.concat([bp,museo,cines],axis=0)
+    # con = sql.get_connector()
+    # tab_final.to_sql('data_principal',con,if_exists='replace')
 
     
+
+    
+
     
