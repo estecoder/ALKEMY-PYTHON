@@ -149,13 +149,6 @@ class Processor:
                     text[i]=palabra
         return text
 
-    #B#Cod_Loc,IdProvincia,IdDepartamento,Observacion,Categoría, Subcategoria,Provincia, Departamento,Localidad,Nombre,Domicilio,Piso,CP,Cod_tel,Teléfono,Mail,Web,Información adicional,Latitud,Longitud,TipoLatitudLongitud,Fuente,Tipo_gestion,año_inicio,Año_actualizacion
-    #M#Cod_Loc,IdProvincia,IdDepartamento,Observaciones,categoria, subcategoria,provincia,localidad,nombre,direccion,piso,CP,cod_area,telefono,Mail,Web,Latitud,Longitud,TipoLatitudLongitud,Info_adicional,fuente,jurisdiccion,año_inauguracion,actualizacion
-    #C#Cod_Loc,IdProvincia,IdDepartamento,Observaciones,Categoría, Provincia, Departamento,Localidad,Nombre,Dirección,Piso,CP,cod_area,Teléfono,Mail,Web,Información adicional,Latitud,Longitud,TipoLatitudLongitud,Fuente,tipo_gestion,Pantallas,Butacas,espacio_INCAA,año_actualizacion
-
-    #cine no tiene: subcategoria NULL
-    # museo no tiene: departamento NULL
-    #B domicilio es direccion
 
 
     

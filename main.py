@@ -1,6 +1,3 @@
-
-import pprint as p
-import os
 import pandas as pd
 
 from data import Data
@@ -37,14 +34,14 @@ if __name__=='__main__':
     req_cines.set_name(name_data3) 
     req_cines.make_request()
     path = req_cines.get_dir()
-    input(save.set_path_file(path))
+    
     cines = save.get_final_data()
 
     input(f"{bp}\n\n{museo}\n\n{cines}")
     
-    # tab_final = pd.concat([bp,museo,cines],axis=0)
-    # con = sql.get_connector()
-    # tab_final.to_sql('data_principal',con,if_exists='replace')
+    tab_final = pd.concat([bp,museo,cines],axis=0)
+    con = sql.get_connector()
+    tab_final.to_sql('data_principal',con,if_exists='replace')
 
     
 

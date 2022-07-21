@@ -1,4 +1,3 @@
-# from sqlalchemy import Column, String, Integer, DateTime, func, text
 from sqlalchemy import *
 from base import base
 
