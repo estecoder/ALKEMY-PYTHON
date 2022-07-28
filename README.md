@@ -3,7 +3,7 @@
 ## Descripcion:
 * Este es un modulo sencillo que interactua con API [CKAN](http://docs.ckan.org/en/latest/api/) - [datos.gob.ar].(https://datos.gob.ar/dataset)
 <br>
-### Inicializar proyecto
+### Inicializar proyecto<br>
 *[ ] Inicialice el entorno virtual. Posterior a esto instale los modulos necesarios para la ejecucion.
 <br>
 ```
