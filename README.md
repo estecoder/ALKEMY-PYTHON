@@ -5,14 +5,18 @@
 <br>
 ### Inicializar proyecto<br>
 <br>
+
 * [ ] Inicialice el entorno virtual. Posterior a esto instale los modulos necesarios para la ejecución.<br>
+
 <br>
-```shell
+```shell<br>
 python -m venv env<br>
-pip install -r requirements.txt
+pip install -r requirements.txt<br>
 ```
 <br>
+
 * [ ] Ingrese al archivo [env](./.env). y configure las variables correspondientes<br>para la conexion a la base de datos.<br>
+
 + DB_HOST = localhost<br>
 - DB_HOST =<br>
 + DB_USER = postgres<br>
