@@ -8,11 +8,12 @@
 
 * [ ] Inicialice el entorno virtual. Posterior a esto instale los modulos necesarios para la ejecución.<br>
 
-<br>
-```shell<br>
+```bash
 python -m venv env<br>
 pip install -r requirements.txt<br>
+
 ```
+<br>
 <br>
 
 * [ ] Ingrese al archivo [env](./.env). y configure las variables correspondientes<br>para la conexion a la base de datos.<br>
@@ -22,7 +23,7 @@ pip install -r requirements.txt<br>
 + DB_USER = postgres<br>
 - DB_USER =<br> 
 + DB_PASSWORD = my_password<br>
-+ DB_PASSWORD = <br>
+- DB_PASSWORD = <br>
 + DB_DATABASE = alkemydb<br>
 - DB_DATABASE = <br>
 + DB_PORT = 5432<br>
