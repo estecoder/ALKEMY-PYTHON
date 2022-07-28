@@ -1,14 +1,33 @@
 
 import pprint as p
-
+import logging as lg
 import pandas as pd
 from typing import List, Dict
 import time
 # from config import Postgres as psql
 
 class Processor:
+
+    """
+    NOMBRE:
+        Processor
+    DESCRIPCION:
+        Procesa archivos csv con el fin de filtrar columnas innecesarias
+        frente a una tabla final pre-establecida, realizando una comparacion 
+        entre los posibles valores. Retorna objetos pandas.DataFrame
+    METODOS:
+        set_path_file - Asignar ruta de csv a procesar
+        get_path_file - Retorna la ruta del csv a procesar
+        get_data_csv - Retorna el csv sin modificaciones. Objeto tipo pandas.DataFrame
+        get_alt_columns - Retorna relacion columnas finales opcion de columnas originales
+        set_alt_columns - Asigna opciones alternativas a columna final especifica
+        get_final_data - Retornar data filtrada. objeto pandas.DataFrame
+        get_filter_column - Retorna las columnas aceptas y descartadas de la tabla fuente
+
+    """
     def __init__(self, path_file: str=None):
         self._path = path_file
+        self.check_run = False
         self.down_data = None
         self.filtered_column = None
         self.alt_columns = {'cod_localidad': ['cod_loc'],
@@ -43,19 +62,21 @@ class Processor:
                                 })
     
     def _run_(self):
+        self.check_run = True
         self.get_data_csv()
         self._normalize_columns()
-        self._fill_final_table()
+        self._filter_columns()
+
 
     def set_path_file(self, path_file: str):
         self._path=path_file
+
     
     def get_path_file(self):
         return self._path
     
     def get_data_csv(self):
         self.down_data = pd.read_csv(self._path)
-        self._normalize_columns()
         return self.down_data
     
     def get_alt_columns(self):
@@ -65,7 +86,9 @@ class Processor:
         self.alt_columns[llave] += lista
 
     def get_final_data(self):
-        self._run_()
+        if not self.check_run:
+            self._run_()
+        self._fill_final_table()
         return self.tf
 
     def get_filter_column(self):
@@ -76,6 +99,8 @@ class Processor:
         self.down_data.columns = map(str.lower, self.down_data.columns)
         cols = self.down_data.columns.to_list()
         self.down_data.columns = self._limpiar_acentos(cols)
+
+        
 
     def _find_right_column(self, src_key):
         for k in self.alt_columns:
@@ -89,31 +114,42 @@ class Processor:
                 alt_key = k
                 break
         return alt_key 
+    
     def _filter_columns(self):
         cont = 0
-        self.process = {'in':{}, 'no_in':{}}
+        self.process = {'in':{}, 'out':{}}
         vals = []
         for h in list(self.alt_columns.values()):
             vals += h
-        
         for i in self.down_data.columns:
             if i in self.tf.columns or i in vals:
                 self.process['in'][i]=cont
             else:
-                self.process['no_in'][i]=cont
+                self.process['out'][i]=cont
             cont += 1 
+        self.filtered_column = self.process
+        lg.info(f"Columnas aceptadas:\n{self.filtered_column['in'].keys()}\n\
+Columnas Rechazadas:{self.filtered_column['out'].keys()}")
 
     def _fill_final_table(self):
-        self._filter_columns()
         cont = 0
         for i in self.tf.columns:
             try:
+                if i == 'fecha_in':
+                    now = time.strftime("%Y-%m-%d %H:%M")
+                    now = pd.to_datetime(now)
+                    try:
+                        self.tf['fecha_in'] = self.tf['fecha_in'].replace(pd.np.nan,now)
+                    except FutureWarning as w:
+                        lg.info(f"{w}")
                 src_key = self._find_keys(self.process['in'],cont)
-                altkey = self._find_right_column(src_key)    
+                altkey = self._find_right_column(src_key)
                 if (self.tf[i].dropna().empty and altkey==i):                     
                     self.tf[i]=self.down_data[src_key]
+                    lg.info(f"Columna:{i} ha sido llenada")
                 elif (self.tf[i].dropna().empty):
                     raise Exception(f"{i} is not filled")
+                
             except Exception as e:
                 x_cont = 0
                 process_val = list(self.process['in'].values())
@@ -123,16 +159,17 @@ class Processor:
                         alt_key = self._find_right_column(or_key)
                         if i == alt_key:
                             self.tf[i]=self.down_data[or_key]
+                            lg.info(f"Columna:{i} ha sido llenada")
                         if (self.down_data[or_key].dropna().empty):
                             break
                     x_cont += 1
             finally:
                 cont +=1
-        now = time.strftime("%Y-%m-%d %H:%M")
-        now = pd.to_datetime(now)
-        self.tf['fecha_in'] = self.tf['fecha_in'].replace(pd.np.nan,now)
-        self.tf = self.tf.replace("s/d",pd.np.nan)
-        self.filtered_column = self.process
+        try:
+            self.tf = self.tf.replace("s/d",pd.np.nan)
+        except FutureWarning as w:
+            lg.info(f"Error futuro.\n{w}")
+        
 
     def _find_keys(self, in_dict: dict, val: int):
         keys = list(in_dict.keys())
@@ -148,14 +185,6 @@ class Processor:
                     palabra = palabra.replace(acen, acentos[acen])
                     text[i]=palabra
         return text
-
-    #B#Cod_Loc,IdProvincia,IdDepartamento,Observacion,Categoría, Subcategoria,Provincia, Departamento,Localidad,Nombre,Domicilio,Piso,CP,Cod_tel,Teléfono,Mail,Web,Información adicional,Latitud,Longitud,TipoLatitudLongitud,Fuente,Tipo_gestion,año_inicio,Año_actualizacion
-    #M#Cod_Loc,IdProvincia,IdDepartamento,Observaciones,categoria, subcategoria,provincia,localidad,nombre,direccion,piso,CP,cod_area,telefono,Mail,Web,Latitud,Longitud,TipoLatitudLongitud,Info_adicional,fuente,jurisdiccion,año_inauguracion,actualizacion
-    #C#Cod_Loc,IdProvincia,IdDepartamento,Observaciones,Categoría, Provincia, Departamento,Localidad,Nombre,Dirección,Piso,CP,cod_area,Teléfono,Mail,Web,Información adicional,Latitud,Longitud,TipoLatitudLongitud,Fuente,tipo_gestion,Pantallas,Butacas,espacio_INCAA,año_actualizacion
-
-    #cine no tiene: subcategoria NULL
-    # museo no tiene: departamento NULL
-    #B domicilio es direccion
 
 
     

@@ -1,50 +1,84 @@
-
-import pprint as p
 import os
 import pandas as pd
+import logging as lg
+from sqlalchemy import text
 
 from data import Data
 from processor import Processor
-
 from config import Postgres 
 from tables import MainData
 
-if __name__=='__main__':
-    name_data1 = "Bibliotecas Populares"
-    name_data2 = "Museo"
-    name_data3 = "Salas de Cine"
-    
-    req_bp = Data()
-    req_museo = Data()
-    req_cines = Data()
-    save = Processor()
-    sql = Postgres()
-    sql.connection()
-    
-    req_bp.set_name(name_data1) 
-    req_bp.make_request()
-    path = req_bp.get_dir()
-    input(save.set_path_file(path))
-    bp = save.get_final_data()
+lg.basicConfig(filename='main.logs', filemode='w', level=lg.DEBUG )
 
-    req_museo.set_name(name_data2) 
-    req_museo.make_request()
-    path = req_museo.get_dir()
+def print_options(options):
+    while True:
+        for i in range(0,len(options)):
+            print(f"{i+1}. {options[i]}")
+
+        in_name = int(input(f"\n\nIngrese una opcion valida de la lista: [ingrese 0 para salir]"))
+        if in_name <= len(options) and in_name > 0:
+            sel = options[in_name-1]
+            break
+        elif in_name==0:
+            break
+    return sel
+
+def solve_challenge(name_data):
+    req = Data()
+    save = Processor()    
+    req.make_request()
+    options = req.get_options()
+    #sel = print_options(options)
+    req.set_name(name_data) 
+    req.get_specific_data()
+    path = req.get_dir()
     save.set_path_file(path)
-    input(save.get_path_file())
-    museo = save.get_final_data()
-    
-    req_cines.set_name(name_data3) 
-    req_cines.make_request()
-    path = req_cines.get_dir()
-    input(save.set_path_file(path))
-    cines = save.get_final_data()
+    csv_data = save.get_data_csv()
+    final_data = save.get_final_data()
+    return [final_data, csv_data]
 
-    input(f"{bp}\n\n{museo}\n\n{cines}")
+
+if __name__=='__main__':
+    try:
+        sql = Postgres()
+        sql.connection()
+        
+        bp = solve_challenge("Bibliotecas Populares")
+        museo = solve_challenge("Museo")
+        cines = solve_challenge("Salas de Cine")
+
+
+        tabla_final = pd.concat([bp[0],museo[0],cines[0]],axis=0).reset_index(drop=True)
+        con = sql.get_connector()
+        tabla_final.to_sql('data_principal',con,if_exists='replace')
+        res = MainData.is_empty(con)
+
+        if (MainData.is_empty(con)):
+            tabla_final.to_sql('data_principal',con,if_exists='replace')
+        else:
+            MainData.truncate(con)
+            tabla_final.to_sql('data_principal',con,if_exists='replace')
+
+        sel = con.execute(text("\
+                                SELECT categoria, COUNT(*) as total, (SELECT now() as fecha) FROM\
+                                public.data_principal\
+                                GROUP BY categoria;\
+                                "))
+        
+        totales = pd.DataFrame(sel.fetchall())
+        totales.to_sql('totales',con,if_exists='replace')
+        
+        col_cines = [cines[1]['Pantallas'],cines[1]['Butacas'],cines[1]['espacio_INCAA']]
+        data_cines = pd.DataFrame(col_cines)
+        data_cines = data_cines.transpose()
+        data_cines = data_cines.assign(fecha_in=cines[0]['fecha_in'])
+        data_cines.to_sql('cines',con,if_exists='replace')
+        print(data_cines)
+    except Exception or Warning as e:
+        lg.warning(f"{e}")
+
     
-    # tab_final = pd.concat([bp,museo,cines],axis=0)
-    # con = sql.get_connector()
-    # tab_final.to_sql('data_principal',con,if_exists='replace')
+    
 
     
 
