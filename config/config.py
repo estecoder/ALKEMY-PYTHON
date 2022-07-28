@@ -2,8 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy import Column, String, Integer,text
 from sqlalchemy.ext.declarative import declarative_base  
 from sqlalchemy.orm import sessionmaker
-from base import base as base_in
+from config.base import base as base_in
 import logging as lg
+from decouple import config
 
 class Postgres:
     """
@@ -11,20 +12,16 @@ class Postgres:
     ===========================================================================
     DESCRIPCION
         Clase que implementa la conexion a traves de SQLAlchemy. con valores
-        por defecto:
-        HOST = "localhost"
-        USER = "alkemy"
-        PASSWORD = "toorpass"
-        DATABASE = "alkemydb"
-        PORT = "5432"
+        configurados en el archivo .env de manera local.
     """
     def __init__(self):
+        
         self.base = base_in
-        self.DB_HOST = "localhost"
-        self.DB_USER = "alkemy"
-        self.DB_PASSWORD = "toorpass"
-        self.DB_DATABASE = "alkemydb"
-        self.DB_PORT = "5432"
+        self.DB_HOST = config('DB_HOST')
+        self.DB_USER = config('DB_USER')
+        self.DB_PASSWORD = config('DB_PASSWORD')
+        self.DB_DATABASE = config('DB_DATABASE')
+        self.DB_PORT = config('DB_PORT')
         self.db = None
         self.session = None
 
@@ -64,9 +61,6 @@ class Postgres:
     def get_session(self):
         return self.session
 
-    def  get_base_obj(self):
-        return self.base
-
     def connection(self):
         """
         NOMBRE: 
@@ -94,11 +88,11 @@ class Postgres:
             self.base.metadata.create_all(self.db)
             Session = sessionmaker(self.db)  
             self.session = Session()
-            lg.info(f"Conexion a base de datos exitosa.\nDatos de conexion:\n\n\
-                host:{self.DB_HOST}\nuser:{self.DB_USER}\n\
-                password:{self.DB_PASSWORD}\ndatabase:{self.DB_DATABASE}\n\
-                port:{self.DB_PORT}")
+            data_con = f"\thost:{self.DB_HOST}\n\tuser:{self.DB_USER}\n"
+            data_con += f"\tpassword:{self.DB_PASSWORD}\n\tdatabase:{self.DB_DATABASE}\n"
+            data_con += f"\tport:{self.DB_PORT}"
+            lg.info(f"\nConexion a base de datos exitosa.\nDatos de conexion:\n{data_con}")
         except Exception as e:
-            lg.warning(f"Error en la conexion a la base de datos.\n{e}")
+            lg.fatal(f"Error en la conexion a la base de datos.\n{e}")
 
 

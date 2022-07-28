@@ -29,7 +29,7 @@ GRANT CONNECT ON DATABASE "template1" TO PUBLIC;
 -- -----------------------------------------------------------------------
 
 --
-CREATE TABLE "public"."data_principal"(
+CREATE TABLE IF NOT EXISTS "public"."data_principal"(
     "index" serial NOT NULL,
     "cod_localidad" INTEGER DEFAULT NULL,
     "id_provincia" INTEGER DEFAULT NULL,
@@ -52,7 +52,7 @@ ALTER TABLE "public"."data_principal" OWNER TO "alkemy";
 -- 
 -------------------------------------------------------------------------
 --
-CREATE TABLE "public"."totales"(
+CREATE TABLE IF NOT EXISTS "public"."totales"(
     "index" serial NOT NULL,
     "categoria" CHARACTER VARYING DEFAULT NULL,
     "total" INTEGER DEFAULT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE "public"."totales"(
 );
 ALTER TABLE "public"."totales" OWNER TO "alkemy";
 
-CREATE TABLE "public"."cines"(
+CREATE TABLE IF NOT EXISTS "public"."cines"(
     "index" serial NOT NULL,
     "provincia" CHARACTER VARYING DEFAULT NULL,
     "pantallas" INTEGER DEFAULT NULL,

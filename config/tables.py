@@ -1,8 +1,7 @@
-# from sqlalchemy import Column, String, Integer, DateTime, func, text
 from requests import session
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
-from base import base
+from config.base import base
 
 
 
