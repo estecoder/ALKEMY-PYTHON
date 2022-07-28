@@ -1,3 +1,7 @@
 #carpetas
 /env/
-/__pycache__/
+*__pycache__/
+
+#archivos
+local.env
+*.log

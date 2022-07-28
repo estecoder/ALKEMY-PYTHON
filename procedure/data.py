@@ -1,3 +1,4 @@
+import logging as lg
 import requests, os, csv, time
     
 class Data:
@@ -33,6 +34,8 @@ class Data:
     def __init__(self, name_dataset: str=None):
         #Definicion de variables internas de la clase
         self._dataset: str = name_dataset
+        self.answer = None
+        self.names = None
         self.__all_data = None
         self.file_dir = None
         self.data_csv = None
@@ -53,8 +56,6 @@ class Data:
     def get_dir(self):
         return self.file_dir
 
-        
-        
     #metodo disponible al usuario
     def make_request(self):
         """
@@ -65,19 +66,35 @@ class Data:
             Hace solicitud a API obteniendo un paquete de datos contenedor de
             las direcciones para la descarga de archivos fuente .csv.
 
-        """        """"""
-        if self._dataset == None:
-            self._dataset = input("ingrese el nombre del dataset").title()
-        r = requests.get(self._url_request)
-        answer = r.json()
-        source_data = answer['result']['resources']
-        for i in source_data:
-            if i['name'] == self._dataset:
-                self.__all_data = i
-        self._create_dirs(self._dataset.lower())
-        self._donwload_csv()
+        """
+        try:
+            r = requests.get(self._url_request)
+            answer = r.json()
+            self.source_data = answer['result']['resources']
+            lg.info("Request a API exitoso.")
+        except Exception as e:
+            lg.critical(f"Error en request a API.\n{e}")
+
+        
     
+    def get_options(self):
+        self.names = []
+        for info in self.source_data:
+            self.names.append(info['name'])
+        return self.names 
     
+    def get_specific_data(self):
+        if self._dataset != None:
+            if self._dataset in self.names:
+                for i in self.source_data:
+                    if i['name'] == self._dataset:
+                        self.__all_data = i
+                self._create_dirs(self._dataset.lower())
+                self._donwload_csv()
+            else:
+                lg.warning(f"{self._dataset} no se encuentra en:\n{self.names}") 
+        else:
+            lg.warning(f"Dataset name is {self._dataset}")
     
     #metodos privados de la clase
     def _donwload_csv(self):
@@ -88,15 +105,20 @@ class Data:
         DESCRIPCION:
             Metodo interno para la descarga de datos que proviene de un .csv
         """        """"""
-        url_d = self.__all_data['url']
-        with requests.Session() as down_data:
-            download = down_data.get(url_d)
-            content = download.content.decode('utf-8')
-            reader = csv.reader(content.splitlines(), delimiter=',')
-            my_list = list(reader)
-        headers = my_list[0]
-        self.data_csv = self._list_to_dict(my_list,headers) 
-        self._w_csv(self.file_dir,self.data_csv)
+        
+        try:
+            url_d = self.__all_data['url']
+            with requests.Session() as down_data:
+                download = down_data.get(url_d)
+                content = download.content.decode('utf-8')
+                reader = csv.reader(content.splitlines(), delimiter=',')
+                my_list = list(reader)
+            headers = my_list[0]
+            self.data_csv = self._list_to_dict(my_list,headers) 
+            self._w_csv(self.file_dir,self.data_csv)
+        except Exception as e:
+            lg.critical(f"\n\
+                {url_d} no pudo ser descargado. Verifique si el request fue exitoso.\n Error: {e}")
 
     def _list_to_dict(self, lista: list, headers: list):
         """
