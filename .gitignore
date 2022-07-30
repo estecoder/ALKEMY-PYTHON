@@ -1,6 +1,9 @@
 #carpetas
 /env/
 *__pycache__/
+bibliotecas populares/
+museo/
+salas de cine/
 
 #archivos
 local.env
