@@ -15,10 +15,14 @@ procesando esta información y escribiendola en una base de datos relacional (Po
 
 <br>
 
-* Inicialice el entorno virtual. Posterior a esto instale los modulos necesarios para la ejecución.<br>
+* Inicialice el entorno virtual. Active el entorno virtual y posterior a esto instale los modulos necesarios para la ejecución.<br>
 
 ```bash
+#Crear entorno virtual
 python -m venv env
+#Activar entorno virtual
+source env/bin/activate
+#Instalar requerimientos del proyecto
 pip install -r requirements.txt
 
 ```
