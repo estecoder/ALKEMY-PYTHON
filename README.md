@@ -25,11 +25,13 @@ pip install -r requirements.txt
 <br>
 
 * Ingrese al archivo [.env](./.env). y configure las variables correspondientes para la conexion a la base de datos.<br>
+> Al crear la base de datos y las tablas desde el archivo SQL la recomendacion es usar los siguientes datos.<br>
+> Si considera que debe hacer la conexion a otra base de datos; deberá editar [db_architecture](./db_architecture.sql) para realizar la creacion de tablas dentro de la base de datos deseada por el usuario.
 
   ```diff
   + DB_HOST = localhost
   - DB_HOST =
-  + DB_USER = postgres
+  + DB_USER = alkemy
   - DB_USER =
   + DB_PASSWORD = my_password
   - DB_PASSWORD = 
